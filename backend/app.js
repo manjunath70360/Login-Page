@@ -60,6 +60,9 @@ const createProductTable = async () => {
   }
 };
 
+app.get('/', (req, res) => {
+    res.send('products api running new deploy');
+});
 
 app.post("/login", async (request, response) => {
   const { username, password } = request.body;
