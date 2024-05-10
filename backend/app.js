@@ -12,9 +12,8 @@ const { open } = require("sqlite");
 const cors = require("cors");
 const path = require("path");
 
-app.use(cors({
-  origin: 'https://login-page-plum-eta.vercel.app'
-}));
+app.use(cors());
+
 
 const dbPath = path.join(__dirname, "database.db");
 
