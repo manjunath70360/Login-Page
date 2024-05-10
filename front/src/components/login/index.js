@@ -1,6 +1,6 @@
 import {Component} from 'react'
-// import Cookies from 'js-cookie'
-// import {Redirect} from 'react-router-dom'
+import Cookies from 'js-cookie'
+import {Redirect} from 'react-router-dom'
 
 import TabRender from "../tab/index"
 import './index.css'
@@ -18,18 +18,6 @@ class LoginForm extends Component {
     activeTab:tabList[0].tabId
   }
 
-  // componentDidMount(){
-
-  //   this.getdata()
-
-  // }
-
-  
-  // getdata = async()=>{
-  //   const res = await fetch("http://localhost:9000/todos")
-  //   const data = await res.json()
-  //   console.log(data)
-  //   }
 
   onChangeUsername = event => {
 
@@ -55,18 +43,18 @@ onChangePhoneNo = event => {
 
 }
 
-//   onSubmitSuccess = jwtToken => {
-//     const {history} = this.props
+onSubmitSuccess = jwtToken => {
+    const {history} = this.props
 
-//     Cookies.set('jwt_token', jwtToken, {
-//       expires: 30,
-//     })
-//     history.replace('/')
-//   }
+     Cookies.set('jwt_token', jwtToken, {
+      expires: 30,
+     })
+     history.replace('/')
+   }
 
-//   onSubmitFailure = errorMsg => {
-//     this.setState({showSubmitError: true, errorMsg})
-//   }
+   onSubmitFailure = errorMsg => {
+     this.setState({showSubmitError: true, errorMsg})
+ }
 
 
 onChangeTab = (id) =>{
