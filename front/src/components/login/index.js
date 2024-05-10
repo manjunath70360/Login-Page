@@ -1,6 +1,5 @@
 import {Component} from 'react'
 import Cookies from 'js-cookie'
-import {Redirect} from 'react-router-dom'
 
 import TabRender from "../tab/index"
 import './index.css'
@@ -43,13 +42,13 @@ onChangePhoneNo = event => {
 
 }
 
-onSubmitSuccess = jwtToken => {
+onSubmitSuccess =  ()=> {
     const {history} = this.props
 
-     Cookies.set('jwt_token', jwtToken, {
+    Cookies.set('jwt_token', jwtToken, {
       expires: 30,
      })
-     history.replace('/')
+     history.replace('/Home')
    }
 
    onSubmitFailure = errorMsg => {
@@ -83,7 +82,7 @@ onChangeTab = (id) =>{
   this.setState({showSubmitError: true, errorMsg:data.text})
  }
  else{
-  this.setState({showSubmitError: true, errorMsg:data.text})
+  this.setState({showSubmitError: true, errorMsg:data.text}, this.onSubmitSuccess)
 
  }
 
@@ -107,7 +106,7 @@ onChangeTab = (id) =>{
    
       const response = await fetch(url, options)
       const data = await response.json()
-     
+      console.log(data)
       this.setState({username: '', password:'', phoneNo:'', address:''})
   
       if(data.statusCode===400){
