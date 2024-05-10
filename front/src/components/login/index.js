@@ -79,7 +79,7 @@ onChangeTab = (id) =>{
     const {username, password} = this.state
     const userDetails = {username, password}
    
-    const url = 'http://localhost:8050/login'
+    const url = 'https://login-page-backend-rho.vercel.app/login'
     const options = {
       method: 'POST',
       headers: {
@@ -108,7 +108,7 @@ onChangeTab = (id) =>{
       alert("Enter All The Required Fields")
     }else{
       const userDetails = {username, password, phoneNo, address}
-      const url = 'http://localhost:8050/newuser'
+      const url = 'https://login-page-backend-rho.vercel.app/newuser'
       const options = {
         method: 'POST',
         headers: {
