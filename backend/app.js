@@ -12,11 +12,8 @@ const { open } = require("sqlite");
 const cors = require("cors");
 const path = require("path");
 
-app.use(cors({
-   origin: "*", 
-   methods: "GET,HEAD,PUT,PATCH,POST,DELETE" 
-  })
-  );
+app.use(cors({ origin: "*" }));
+
 
 const dbPath = path.join(__dirname, "database.db");
 
@@ -30,9 +27,14 @@ const initializeDBAndServer = async () => {
       filename: dbPath,
       driver: sqlite3.Database,
     });
-    app.listen(8050, () => {
-      console.log("server Running in 3000");
+
+    await createUserTable();
+    const PORT = process.env.PORT || 8050;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
     });
+
+    
   } catch (err) {
     console.log(`DB Error: ${err.message}`);
     process.exit(1);
@@ -41,27 +43,24 @@ const initializeDBAndServer = async () => {
 
 initializeDBAndServer();
 
-
-const createProductTable = async () => {
+const createUserTable = async () => {
   try {
-    await db.exec(`CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY,
-      category TEXT,
-      brand TEXT,
-      image_url TEXT,
-      price INTEGER,
-      rating REAL,
-      title TEXT
+    await db.exec(`CREATE TABLE IF NOT EXISTS user (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE,
+      password TEXT,
+      phoneNum TEXT,
+      address TEXT
     )`);
 
   } catch (err) {
-    console.log(`Error creating product table: ${err.message}`);
+    console.log(`Error creating user table: ${err.message}`);
     process.exit(1);
   }
 };
 
 app.get('/', (req, res) => {
-    res.send('products api running new deploy');
+    res.send('User api running new deploy');
 });
 
 app.post("/login", async (request, response) => {
@@ -83,7 +82,7 @@ app.post("/login", async (request, response) => {
   }
 });
 
-app.post("/newuser/", async (request, response) => {
+app.post("/newuser", async (request, response) => {
   const { username,  password ,phoneNo,address} = request.body;
   const hashedPassword = await bcrypt.hash(password, 10)
   const selectUserQuery = `SELECT * FROM user WHERE username = '${username}'`;
@@ -110,20 +109,3 @@ app.post("/newuser/", async (request, response) => {
 
 
 module.exports = app;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
