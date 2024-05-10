@@ -1,15 +1,15 @@
 import {Route, Switch, BrowserRouter} from 'react-router-dom'
 
 import Login from "./components/login"
-import SuccessLogin "./components/SuccessLogin"
+import SuccessLogin from"./components/SuccessLogin"
 import "./App.css"
 
 const App = ()=> {
 return(
-      <BrowserRouter/>
+      <BrowserRouter>
       <Switch>
-          <Route exact path="/" component={SuccessLogin} />
-          <Route exact path="/login" component={LoginForm} />
+          <Route exact path="/Home" component={SuccessLogin} />
+          <Route exact path="/" component={Login} />
       </Switch>
       </BrowserRouter>
 )
