@@ -1,271 +1,113 @@
-import {Component} from 'react'
-// import Cookies from 'js-cookie'
+const bcrypt = require('bcrypt');
+const express = require("express");
 
-import TabRender from "../tab/index"
-import './index.css'
+const app = express();
+app.use(express.json());
 
-const tabList = [{tabName:"SIGNIN", tabId:'login'}, {tabName:"SIGNUP", tabId:"create-account"}]
+const jwt = require("jsonwebtoken")
 
-class LoginForm extends Component {
-  state = {
-    username: '',
-    password: '',
-    address: "",
-    phoneNo:"",
-    showSubmitError: false,
-    errorMsg:'',
-    activeTab:tabList[0].tabId
-  }
+const sqlite3 = require("sqlite3");
+const { open } = require("sqlite");
+
+const cors = require("cors");
+const path = require("path");
+
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
+
+const dbPath = path.join(__dirname, "database.db");
 
 
-  onChangeUsername = event => {
 
-      this.setState({username: event.target.value})
+let db = null;
+
+const initializeDBAndServer = async () => {
+  try {
+    db = await open({
+      filename: dbPath,
+      driver: sqlite3.Database,
+    });
+
+    await createUserTable();
+    const PORT = process.env.PORT || 8050;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+
     
+  } catch (err) {
+    console.log(`DB Error: ${err.message}`);
+    process.exit(1);
   }
+};
 
-  onChangePassword = event => {
+initializeDBAndServer();
 
-      this.setState({password: event.target.value})
-    
+const createUserTable = async () => {
+  try {
+    await db.exec(`CREATE TABLE IF NOT EXISTS user (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE,
+      password TEXT,
+      phoneNum TEXT,
+      address TEXT
+    )`);
+
+  } catch (err) {
+    console.log(`Error creating user table: ${err.message}`);
+    process.exit(1);
   }
+};
 
-  onChangeAddress = event => {
+app.get('/', (req, res) => {
+    res.send('User api running new deploy');
+});
 
-    this.setState({address: event.target.value})
-  
-}
+app.post("/login", async (request, response) => {
+  const { username, password } = request.body;
+  const selectUserQuery = `SELECT * FROM user WHERE username = '${username}'`;
+  const dbUser = await db.get(selectUserQuery);
+  if (dbUser === undefined) {
+    response.send({statusCode:400, text:"Invalid user"})
+  } else {
+    const isPasswordMatched = await bcrypt.compare(password, dbUser.password)
 
-onChangePhoneNo = event => {
-
-  this.setState({phoneNo: event.target.value})
-
-}
-
-onSubmitSuccess =  ()=> {
-    const {history} = this.props
-
-    // Cookies.set('jwt_token', jwtToken, {
-    //   expires: 30,
-    //  })
-     history.replace('/Home')
-   }
-
-   onSubmitFailure = errorMsg => {
-     this.setState({showSubmitError: true, errorMsg})
- }
-
-
-onChangeTab = (id) =>{
-  
-  this.setState({activeTab:id, showSubmitError:false, errorMsg:""})
-}
-
-  submitForm = async event => {
-    event.preventDefault()
-    const {username, password} = this.state
-    const userDetails = {username, password}
-   
-    const url = 'http://localhost:8050/login'
-    const options = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userDetails),
+    if (isPasswordMatched === true) {
+      const payload = {username:username}
+      const jwtToken = jwt.sign(payload, "my_secret_token")
+      response.send({jwtToken:jwtToken,statusCode:200, text:"Logged In"})
+    } else {
+      response.send({statusCode:400, text:"Invalid Password"})
     }
-    const response = await fetch(url, options)
-    const data = await response.json()
-    console.log(data)
-    this.setState({username: '', password:''})
- if(data.statusCode===400){
-  this.setState({showSubmitError: true, errorMsg:data.text})
- }
- else if(data.statusCode===200){
-  this.setState({showSubmitError: true, errorMsg:data.text}, this.onSubmitSuccess)
-
- }
-
   }
+});
 
-  createUserAccount = async () => {
-    
-    const {username, password, phoneNo, address} = this.state
-    if (username==="" || password==="" || phoneNo==="" || address===""){
-      alert("Enter All The Required Fields")
-    }else{
-      const userDetails = {username, password, phoneNo, address}
-      const url = 'http://localhost:8050/newuser'
-      const options = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userDetails),
-      }
-   
-      const response = await fetch(url, options)
-      const data = await response.json()
-  
-      this.setState({username: '', password:'', phoneNo:'', address:''})
-  
-      if(data.statusCode===400){
-        this.setState({showSubmitError: true, errorMsg:data.text})
-       }
-       else if(data.statusCode===200){
-        this.setState({showSubmitError: true, errorMsg:data.text})
-    
-       }
-    }
-    
-
-   
+app.post("/newuser", async (request, response) => {
+  const { username,  password ,phoneNo,address} = request.body;
+  const hashedPassword = await bcrypt.hash(password, 10)
+  const selectUserQuery = `SELECT * FROM user WHERE username = '${username}'`;
+  const dbUser = await db.get(selectUserQuery);
+  if (dbUser === undefined) {
+    const createUserQuery = `
+      INSERT INTO 
+        user (username, password, phoneNum,address) 
+      VALUES 
+        (
+          '${username}', 
+          '${hashedPassword}',
+          '${phoneNo}', 
+          '${address}'
+        )`;
+    const dbResponse = await db.run(createUserQuery);
+    const newUserId = dbResponse.lastID;
+    response.send({statusCode:200, text:`Created new user with id ${newUserId}`});
+  } else {
+    response.send({statusCode:400, text:"user already exit"})
   }
+});
 
-  renderPasswordField = () => {
-    const {password} = this.state
 
-    return (
-      <>
-        <label className="input-label" htmlFor="password">
-          PASSWORD
-        </label>
-        <input
-          type="password"
-          id="password"
-          className="password-input-field"
-          value={password}
-          onChange={this.onChangePassword}
-          placeholder="Password"
-          required
-        />
-      </>
-    )
-  }
 
-  renderUsernameField = () => {
-    const {username} = this.state
-
-    return (
-      <>
-        <label className="input-label" htmlFor="username">
-          USERNAME
-        </label>
-        <input
-          type="text"
-          id="username"
-          className="username-input-field"
-          value={username}
-          onChange={this.onChangeUsername}
-          placeholder="Username"
-          required
-        />
-      </>
-    )
-  }
-
-  renderAddressField = () => {
-    const {address} = this.state
-
-    return (
-      <>
-        <label className="input-label" htmlFor="address">
-          ADDRESS
-        </label>
-        <input
-          type="text"
-          id="address"
-          className="username-input-field"
-          value={address}
-          onChange={this.onChangeAddress}
-          placeholder="Address"
-          required
-        />
-      </>
-    )
-  }
-
-  renderPhoneNO = () => {
-    const {phoneNo} = this.state
-
-    return (
-      <>
-        <label className="input-label" htmlFor="phone">
-          PHONE NUMBER
-        </label>
-        <input
-          type="text"
-          id="phone"
-          className="username-input-field"
-          value={phoneNo}
-          onChange={this.onChangePhoneNo}
-          placeholder="Phone"
-          required
-        />
-      </>
-    )
-  }
-
-  render() {
-    const {showSubmitError, errorMsg, activeTab} = this.state
-    // const jwtToken = Cookies.get('jwt_token')
-
-    // if (jwtToken !== undefined) {
-    //   return <Redirect to="/" />
-    //}
-
-const activeLogin = activeTab === "login" ? true : false
-
-    return (
-      <div className="login-form-container">
-        <img
-          src="https://assets.ccbp.in/frontend/react-js/nxt-trendz-logo-img.png"
-          className="login-website-logo-mobile-img"
-          alt="website logo"
-        />
-        <img
-          src="https://assets.ccbp.in/frontend/react-js/nxt-trendz-login-img.png"
-          className="login-img"
-          alt="website login"
-        />
-
-       
-
-        
-
-        <form className="form-container" onSubmit={this.submitForm}>
-          <img
-            src="https://assets.ccbp.in/frontend/react-js/nxt-trendz-logo-img.png"
-            className="login-website-logo-desktop-img"
-            alt="website logo"
-          />
-          
-          <ul className='tab-list'>
-        {tabList.map(eachTab =>(
-          <TabRender details={eachTab} isActive={activeTab} key={eachTab.tabId} onChangeTab={this.onChangeTab}/>
-        ))}
-        </ul>
-
-{activeLogin ? (<> <div className="input-container">{this.renderUsernameField()}</div>
-          <div className="input-container">{this.renderPasswordField()}</div></>):
-         ( <><div className="input-container">{this.renderUsernameField()}</div>
-         <div className="input-container">{this.renderPhoneNO()}</div>
-         <div className="input-container">{this.renderAddressField()}</div>
-          <div className="input-container">{this.renderPasswordField()}</div></>)}
-
-          {activeLogin ?  <button type="submit" className="login-button">
-            Login
-          </button> : <button type="button" onClick={this.createUserAccount} className="login-button">
-            Create Account
-          </button>}
-          
-         
-          
-          {showSubmitError && <p className="error-message">*{errorMsg}</p>}
-        </form>
-      </div>
-    )
-  }
-}
-
-export default LoginForm
+module.exports = app;
