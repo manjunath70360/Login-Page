@@ -106,7 +106,7 @@ onChangeTab = (id) =>{
    
       const response = await fetch(url, options)
       const data = await response.json()
-      console.log(data)
+  
       this.setState({username: '', password:'', phoneNo:'', address:''})
   
       if(data.statusCode===400){
