@@ -76,7 +76,7 @@ onChangeTab = (id) =>{
  if(data.statusCode===400){
   this.setState({showSubmitError: true, errorMsg:data.text})
  }
- else{
+ else if(data.statusCode===200){
   this.setState({showSubmitError: true, errorMsg:data.text}, this.onSubmitSuccess)
 
  }
