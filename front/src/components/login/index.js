@@ -69,9 +69,6 @@ onChangeTab = (id) =>{
     const url = 'https://login-page-eta-eight-53.vercel.app/login'
     const options = {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(userDetails),
     }
     const response = await fetch(url, options)
@@ -97,12 +94,9 @@ onChangeTab = (id) =>{
       const userDetails = {username, password, phoneNo, address}
       const url = 'https://login-page-eta-eight-53.vercel.app/newuser'
       const options = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userDetails),
-      }
+      method: 'POST',
+      body: JSON.stringify(userDetails),
+    }
    
       const response = await fetch(url, options)
       const data = await response.json()
