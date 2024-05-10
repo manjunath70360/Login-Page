@@ -101,7 +101,7 @@ app.post("/newuser/", async (request, response) => {
         )`;
     const dbResponse = await db.run(createUserQuery);
     const newUserId = dbResponse.lastID;
-    response.send({status:`Created new user with id ${newUserId}`});
+    response.send({statusCode:200, text:`Created new user with id ${newUserId}`});
   } else {
     response.send({statusCode:400, text:"user already exit"})
   }
