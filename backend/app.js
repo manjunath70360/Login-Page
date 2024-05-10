@@ -12,8 +12,10 @@ const { open } = require("sqlite");
 const cors = require("cors");
 const path = require("path");
 
-app.use(cors());
-
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
 
 const dbPath = path.join(__dirname, "database.db");
 
@@ -68,7 +70,7 @@ app.post("/login", async (request, response) => {
   const selectUserQuery = `SELECT * FROM user WHERE username = '${username}'`;
   const dbUser = await db.get(selectUserQuery);
   if (dbUser === undefined) {
-    response.send({status:400, text:"Invalid user"})
+    response.send({statusCode:400, text:"Invalid user"})
   } else {
     const isPasswordMatched = await bcrypt.compare(password, dbUser.password)
 
