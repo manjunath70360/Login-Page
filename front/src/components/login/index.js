@@ -1,5 +1,4 @@
 import {Component} from 'react'
-import Cookies from 'js-cookie'
 
 import TabRender from "../tab/index"
 import './index.css'
@@ -44,8 +43,6 @@ onChangePhoneNo = event => {
 
 onSubmitSuccess =  ()=> {
     const {history} = this.props
-
-
      history.replace('/Home')
    }
 
