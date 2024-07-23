@@ -1,124 +1,110 @@
-import {Component} from 'react'
-// import Cookies from 'js-cookie'
+import { Component } from 'react';
+import TabRender from "../tab/index";
+import './index.css';
 
-import TabRender from "../tab/index"
-import './index.css'
-
-const tabList = [{tabName:"SIGNIN", tabId:'login'}, {tabName:"SIGNUP", tabId:"create-account"}]
+const tabList = [{ tabName: "SIGNIN", tabId: 'login' }, { tabName: "SIGNUP", tabId: "create-account" }];
 
 class LoginForm extends Component {
   state = {
     username: '',
     password: '',
     address: "",
-    phoneNo:"",
+    phoneNo: "",
     showSubmitError: false,
-    errorMsg:'',
-    activeTab:tabList[0].tabId
+    errorMsg: '',
+    activeTab: tabList[0].tabId
   }
 
-
   onChangeUsername = event => {
-
-      this.setState({username: event.target.value})
-    
+    this.setState({ username: event.target.value });
   }
 
   onChangePassword = event => {
-
-      this.setState({password: event.target.value})
-    
+    this.setState({ password: event.target.value });
   }
 
   onChangeAddress = event => {
+    this.setState({ address: event.target.value });
+  }
 
-    this.setState({address: event.target.value})
-  
-}
+  onChangePhoneNo = event => {
+    this.setState({ phoneNo: event.target.value });
+  }
 
-onChangePhoneNo = event => {
+  onSubmitSuccess = () => {
+    const { history } = this.props;
+    history.replace('/Home');
+  }
 
-  this.setState({phoneNo: event.target.value})
+  onSubmitFailure = errorMsg => {
+    this.setState({ showSubmitError: true, errorMsg });
+  }
 
-}
-
-onSubmitSuccess =  ()=> {
-    const {history} = this.props
-
-    // Cookies.set('jwt_token', jwtToken, {
-    //   expires: 30,
-    //  })
-     history.replace('/Home')
-   }
-
-   onSubmitFailure = errorMsg => {
-     this.setState({showSubmitError: true, errorMsg})
- }
-
-
-onChangeTab = (id) =>{
-  
-  this.setState({activeTab:id, showSubmitError:false, errorMsg:""})
-}
+  onChangeTab = (id) => {
+    this.setState({ activeTab: id, showSubmitError: false, errorMsg: "" });
+  }
 
   submitForm = async event => {
-    event.preventDefault()
-    const {username, password} = this.state
-    const userDetails = {username, password}
-   
-    const url = 'https://login-page-dljs.onrender.com/login'
+    event.preventDefault();
+    const { username, password } = this.state;
+    const userDetails = { username, password };
+
+    const url = 'https://login-page-dljs.onrender.com/login';
     const options = {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(userDetails),
+    };
+    try {
+      const response = await fetch(url, options);
+      const data = await response.json();
+      console.log(data);
+      this.setState({ username: '', password: '' });
+      if (data.statusCode === 400) {
+        this.setState({ showSubmitError: true, errorMsg: data.text });
+      } else if (data.statusCode === 200) {
+        this.setState({ showSubmitError: true, errorMsg: data.text }, this.onSubmitSuccess);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      this.setState({ showSubmitError: true, errorMsg: 'Failed to connect to the server.' });
     }
-    const response = await fetch(url, options)
-    const data = await response.json()
-    console.log(data)
-    this.setState({username: '', password:''})
- if(data.statusCode===400){
-  this.setState({showSubmitError: true, errorMsg:data.text})
- }
- else if(data.statusCode===200){
-  this.setState({showSubmitError: true, errorMsg:data.text}, this.onSubmitSuccess)
-
- }
-
   }
 
   createUserAccount = async () => {
-    
-    const {username, password, phoneNo, address} = this.state
-    if (username==="" || password==="" || phoneNo==="" || address===""){
-      alert("Enter All The Required Fields")
-    }else{
-      const userDetails = {username, password, phoneNo, address}
-      const url = 'https://login-page-dljs.onrender.com/newuser'
+    const { username, password, phoneNo, address } = this.state;
+    if (username === "" || password === "" || phoneNo === "" || address === "") {
+      alert("Enter All The Required Fields");
+    } else {
+      const userDetails = { username, password, phoneNo, address };
+      const url = 'https://login-page-dljs.onrender.com/newuser';
       const options = {
-      method: 'POST',
-      body: JSON.stringify(userDetails),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userDetails),
+      };
+      try {
+        const response = await fetch(url, options);
+        const data = await response.json();
+        this.setState({ username: '', password: '', phoneNo: '', address: '' });
+        if (data.statusCode === 400) {
+          this.setState({ showSubmitError: true, errorMsg: data.text });
+        } else if (data.statusCode === 200) {
+          this.setState({ showSubmitError: true, errorMsg: data.text });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        this.setState({ showSubmitError: true, errorMsg: 'Failed to connect to the server.' });
+      }
     }
-   
-      const response = await fetch(url, options)
-      const data = await response.json()
-  
-      this.setState({username: '', password:'', phoneNo:'', address:''})
-  
-      if(data.statusCode===400){
-        this.setState({showSubmitError: true, errorMsg:data.text})
-       }
-       else if(data.statusCode===200){
-        this.setState({showSubmitError: true, errorMsg:data.text})
-    
-       }
-    }
-    
-
-   
   }
 
   renderPasswordField = () => {
-    const {password} = this.state
-
+    const { password } = this.state;
     return (
       <>
         <label className="input-label" htmlFor="password">
@@ -134,12 +120,11 @@ onChangeTab = (id) =>{
           required
         />
       </>
-    )
+    );
   }
 
   renderUsernameField = () => {
-    const {username} = this.state
-
+    const { username } = this.state;
     return (
       <>
         <label className="input-label" htmlFor="username">
@@ -155,12 +140,11 @@ onChangeTab = (id) =>{
           required
         />
       </>
-    )
+    );
   }
 
   renderAddressField = () => {
-    const {address} = this.state
-
+    const { address } = this.state;
     return (
       <>
         <label className="input-label" htmlFor="address">
@@ -176,12 +160,11 @@ onChangeTab = (id) =>{
           required
         />
       </>
-    )
+    );
   }
 
   renderPhoneNO = () => {
-    const {phoneNo} = this.state
-
+    const { phoneNo } = this.state;
     return (
       <>
         <label className="input-label" htmlFor="phone">
@@ -197,18 +180,12 @@ onChangeTab = (id) =>{
           required
         />
       </>
-    )
+    );
   }
 
   render() {
-    const {showSubmitError, errorMsg, activeTab} = this.state
-    // const jwtToken = Cookies.get('jwt_token')
-
-    // if (jwtToken !== undefined) {
-    //   return <Redirect to="/" />
-    //}
-
-const activeLogin = activeTab === "login" ? true : false
+    const { showSubmitError, errorMsg, activeTab } = this.state;
+    const activeLogin = activeTab === "login";
 
     return (
       <div className="login-form-container">
@@ -222,44 +199,44 @@ const activeLogin = activeTab === "login" ? true : false
           className="login-img"
           alt="website login"
         />
-
-       
-
-        
-
         <form className="form-container" onSubmit={this.submitForm}>
           <img
             src="https://assets.ccbp.in/frontend/react-js/nxt-trendz-logo-img.png"
             className="login-website-logo-desktop-img"
             alt="website logo"
           />
-          
           <ul className='tab-list'>
-        {tabList.map(eachTab =>(
-          <TabRender details={eachTab} isActive={activeTab} key={eachTab.tabId} onChangeTab={this.onChangeTab}/>
-        ))}
-        </ul>
-
-{activeLogin ? (<> <div className="input-container">{this.renderUsernameField()}</div>
-          <div className="input-container">{this.renderPasswordField()}</div></>):
-         ( <><div className="input-container">{this.renderUsernameField()}</div>
-         <div className="input-container">{this.renderPhoneNO()}</div>
-         <div className="input-container">{this.renderAddressField()}</div>
-          <div className="input-container">{this.renderPasswordField()}</div></>)}
-
-          {activeLogin ?  <button type="submit" className="login-button">
-            Login
-          </button> : <button type="button" onClick={this.createUserAccount} className="login-button">
-            Create Account
-          </button>}
-          
-         
-          
+            {tabList.map(eachTab => (
+              <TabRender details={eachTab} isActive={activeTab} key={eachTab.tabId} onChangeTab={this.onChangeTab} />
+            ))}
+          </ul>
+          {activeLogin ? (
+            <>
+              <div className="input-container">{this.renderUsernameField()}</div>
+              <div className="input-container">{this.renderPasswordField()}</div>
+            </>
+          ) : (
+            <>
+              <div className="input-container">{this.renderUsernameField()}</div>
+              <div className="input-container">{this.renderPhoneNO()}</div>
+              <div className="input-container">{this.renderAddressField()}</div>
+              <div className="input-container">{this.renderPasswordField()}</div>
+            </>
+          )}
+          {activeLogin ? (
+            <button type="submit" className="login-button">
+              Login
+            </button>
+          ) : (
+            <button type="button" onClick={this.createUserAccount} className="login-button">
+              Create Account
+            </button>
+          )}
           {showSubmitError && <p className="error-message">*{errorMsg}</p>}
         </form>
       </div>
-    )
+    );
   }
 }
 
-export default LoginForm
+export default LoginForm;
