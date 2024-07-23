@@ -66,7 +66,7 @@ onChangeTab = (id) =>{
     const {username, password} = this.state
     const userDetails = {username, password}
    
-    const url = 'https://login-page-eta-eight-53.vercel.app/login'
+    const url = 'https://login-page-dljs.onrender.com/login'
     const options = {
       method: 'POST',
       body: JSON.stringify(userDetails),
@@ -92,7 +92,7 @@ onChangeTab = (id) =>{
       alert("Enter All The Required Fields")
     }else{
       const userDetails = {username, password, phoneNo, address}
-      const url = 'https://login-page-eta-eight-53.vercel.app/newuser'
+      const url = 'https://login-page-dljs.onrender.com/newuser'
       const options = {
       method: 'POST',
       body: JSON.stringify(userDetails),
